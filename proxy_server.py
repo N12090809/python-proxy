@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 class Proxy(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         url = self.path[1:]
-        if not url.startswith(('http://', 'https://')):
+        if not url or not url.startswith(('http://', 'https://')):
             self.send_error(400, "Only absolute URLs are allowed")
             return
 
@@ -38,7 +38,7 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
         url = self.path[1:]
-        if not url.startswith(('http://', 'https://')):
+        if not url or not url.startswith(('http://', 'https://')):
             self.send_error(400, "Only absolute URLs are allowed")
             return
 
