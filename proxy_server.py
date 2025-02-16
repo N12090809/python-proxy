@@ -7,6 +7,10 @@ import re
 class Proxy(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         url = self.path[1:]
+        if not url.startswith(('http://', 'https://')):
+            self.send_error(404, "Only absolute URLs are allowed")
+            return
+        
         try:
             with urllib.request.urlopen(url) as response:
                 self.send_response(response.status)
@@ -27,6 +31,10 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
         url = self.path[1:]
+        if not url.startswith(('http://', 'https://')):
+            self.send_error(404, "Only absolute URLs are allowed")
+            return
+
         try:
             req = urllib.request.Request(url, data=post_data, method='POST')
             with urllib.request.urlopen(req) as response:
@@ -35,7 +43,7 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
                     self.send_header(header[0], header[1])
                 self.end_headers()
                 content_type = response.headers.get('Content-Type', '')
-                if 'text/html' in content type:
+                if 'text/html' in content_type:
                     html = response.read().decode('utf-8')
                     proxied_html = self.rewrite_urls(html, url)
                     self.wfile.write(proxied_html.encode('utf-8'))
