@@ -2,21 +2,13 @@ import logging
 import socketserver
 import http.server
 import urllib.request
-from urllib.parse import urlparse, urlunparse, quote, parse_qs
+from urllib.parse import urlparse, urlunparse, quote
 import re
 
 logging.basicConfig(level=logging.INFO)
 
 class Proxy(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        # Check for query parameters or root path
-        if self.path == "/" or "?" in self.path:
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-            self.wfile.write(b"<html><body><h1>Proxy Server Running</h1></body></html>")
-            return
-
         url = self.path[1:]
         logging.info(f"Received GET request for URL: {url}")
 
@@ -26,6 +18,7 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
 
         try:
             with urllib.request.urlopen(url) as response:
+                logging.info(f"Fetching URL: {url}")
                 self.send_response(response.status)
                 for header in response.getheaders():
                     self.send_header(header[0], header[1])
@@ -38,10 +31,13 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
                 else:
                     self.wfile.write(response.read())
         except urllib.error.HTTPError as e:
+            logging.error(f"HTTP Error: {e.code}, Reason: {e.reason}")
             self.send_error(e.code, f"HTTP Error: {e.reason}")
         except urllib.error.URLError as e:
+            logging.error(f"URL Error: {e.reason}")
             self.send_error(404, f"URL Error: {e.reason}")
         except Exception as e:
+            logging.error(f"Server Error: {e}")
             self.send_error(500, f"Server Error: {e}")
 
     def do_POST(self):
@@ -57,6 +53,7 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
         try:
             req = urllib.request.Request(url, data=post_data, method='POST')
             with urllib.request.urlopen(req) as response:
+                logging.info(f"Fetching URL: {url}")
                 self.send_response(response.status)
                 for header in response.getheaders():
                     self.send_header(header[0], header[1])
@@ -69,10 +66,13 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
                 else:
                     self.wfile.write(response.read())
         except urllib.error.HTTPError as e:
+            logging.error(f"HTTP Error: {e.code}, Reason: {e.reason}")
             self.send_error(e.code, f"HTTP Error: {e.reason}")
         except urllib.error.URLError as e:
+            logging.error(f"URL Error: {e.reason}")
             self.send_error(404, f"URL Error: {e.reason}")
         except Exception as e:
+            logging.error(f"Server Error: {e}")
             self.send_error(500, f"Server Error: {e}")
 
     def rewrite_urls(self, html, base_url):
