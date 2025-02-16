@@ -1,16 +1,19 @@
+import logging
 import socketserver
 import http.server
 import urllib.request
 from urllib.parse import urlparse, urlunparse, quote
 import re
 
+logging.basicConfig(level=logging.INFO)
+
 class Proxy(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         url = self.path[1:]
         if not url.startswith(('http://', 'https://')):
-            self.send_error(404, "Only absolute URLs are allowed")
+            self.send_error(400, "Only absolute URLs are allowed")
             return
-        
+
         try:
             with urllib.request.urlopen(url) as response:
                 self.send_response(response.status)
@@ -24,15 +27,19 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(proxied_html.encode('utf-8'))
                 else:
                     self.wfile.write(response.read())
+        except urllib.error.HTTPError as e:
+            self.send_error(e.code, f"HTTP Error: {e.reason}")
+        except urllib.error.URLError as e:
+            self.send_error(404, f"URL Error: {e.reason}")
         except Exception as e:
-            self.send_error(404, f"Error: {e}")
+            self.send_error(500, f"Server Error: {e}")
 
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
         url = self.path[1:]
         if not url.startswith(('http://', 'https://')):
-            self.send_error(404, "Only absolute URLs are allowed")
+            self.send_error(400, "Only absolute URLs are allowed")
             return
 
         try:
@@ -49,8 +56,12 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(proxied_html.encode('utf-8'))
                 else:
                     self.wfile.write(response.read())
+        except urllib.error.HTTPError as e:
+            self.send_error(e.code, f"HTTP Error: {e.reason}")
+        except urllib.error.URLError as e:
+            self.send_error(404, f"URL Error: {e.reason}")
         except Exception as e:
-            self.send_error(404, f"Error: {e}")
+            self.send_error(500, f"Server Error: {e}")
 
     def rewrite_urls(self, html, base_url):
         parsed_base_url = urlparse(base_url)
@@ -71,5 +82,5 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     PORT = 8888
     with socketserver.TCPServer(("", PORT), Proxy) as httpd:
-        print(f"Serving on port {PORT}")
+        logging.info(f"Serving on port {PORT}")
         httpd.serve_forever()
