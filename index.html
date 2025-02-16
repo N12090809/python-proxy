@@ -43,7 +43,7 @@
     <script>
         function loadPage() {
             const url = document.getElementById('url').value;
-            const proxyUrl = `https://YOUR_GITPOD_URL/${encodeURIComponent(url)}`;
+            const proxyUrl = `/${encodeURIComponent(url)}`;
             document.getElementById('browser-frame').src = proxyUrl;
         }
     </script>
