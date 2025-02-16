@@ -20,25 +20,39 @@ Go to [Gitpod](https://gitpod.io/) and log in using your GitHub account.
 
 Create a new workspace using the URL of this repository.
 
-### Step 3: Run the Proxy Server
+### Step 3: Wait for Initialization
 
-1. Open the terminal in Gitpod.
-2. Run the following command to start the proxy server:
-   ```sh
-   python proxy_server.py
-   ```
+Gitpod will initialize your workspace based on the `.gitpod.yml` configuration. This includes setting up the environment and installing any dependencies listed in `requirements.txt`.
 
-### Step 4: Expose the Port
+### Step 4: Verify the Proxy Server is Running
 
-Gitpod will prompt you to open port 8888 for external access. Accept this prompt.
+The `.gitpod.yml` file is configured to automatically run the proxy server with the command `python proxy_server.py`. The terminal should show the message: `Serving on port 8888`.
 
-### Step 5: Get the URL
+### Step 5: Expose the Port
 
-Gitpod will provide a URL where your server is running. Replace `YOUR_GITPOD_URL` in `index.html` with this URL.
+Gitpod will prompt you to open port 8888 for external access. Accept this prompt to expose the port.
 
-### Step 6: Access the HTML Interface
+### Step 6: Get the URL
 
-1. Open the `index.html` file using the provided Gitpod URL.
-2. Enter a URL in the address bar and click "Go" to load the page through the proxy server.
+Gitpod will provide a URL where your server is running. This URL will be in the format `https://8888-your-workspace-id.ws-eu.gitpod.io/`.
+
+### Step 7: Update the HTML Interface
+
+1. Open the `index.html` file in the Gitpod editor.
+2. Replace `YOUR_GITPOD_URL` with the URL provided by Gitpod. For example:
+    ```html
+    <script>
+        function loadPage() {
+            const url = document.getElementById('url').value;
+            const proxyUrl = `/${encodeURIComponent(url)}`;
+            document.getElementById('browser-frame').src = proxyUrl;
+        }
+    </script>
+    ```
+
+### Step 8: Preview the HTML Interface
+
+1. In Gitpod, open the `index.html` file and click on the "Open in Browser" button to preview the file in a new browser tab.
+2. You can now use the proxy browser interface. Enter a URL in the address bar and click "Go" to load the page through the proxy server.
 
 Enjoy browsing the web through your proxy server!
