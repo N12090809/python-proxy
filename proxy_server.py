@@ -2,15 +2,25 @@ import logging
 import socketserver
 import http.server
 import urllib.request
-from urllib.parse import urlparse, urlunparse, quote
+from urllib.parse import urlparse, urlunparse, quote, parse_qs
 import re
 
 logging.basicConfig(level=logging.INFO)
 
 class Proxy(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
+        # Check for query parameters or root path
+        if self.path == "/" or "?" in self.path:
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(b"<html><body><h1>Proxy Server Running</h1></body></html>")
+            return
+
         url = self.path[1:]
-        if not url or not url.startswith(('http://', 'https://')):
+        logging.info(f"Received GET request for URL: {url}")
+
+        if not url.startswith(('http://', 'https://')):
             self.send_error(400, "Only absolute URLs are allowed")
             return
 
@@ -38,7 +48,9 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
         url = self.path[1:]
-        if not url or not url.startswith(('http://', 'https://')):
+        logging.info(f"Received POST request for URL: {url}")
+
+        if not url.startswith(('http://', 'https://')):
             self.send_error(400, "Only absolute URLs are allowed")
             return
 
