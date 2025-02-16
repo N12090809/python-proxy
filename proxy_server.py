@@ -12,6 +12,18 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
         url = self.path[1:]
         logging.info(f"Received GET request for URL: {url}")
 
+        if not url:
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(b"<html><body><h1>Proxy Server Running</h1></body></html>")
+            return
+
+        if url == "favicon.ico":
+            self.send_response(204)  # No Content
+            self.end_headers()
+            return
+
         if not url.startswith(('http://', 'https://')):
             self.send_error(400, "Only absolute URLs are allowed")
             return
@@ -46,7 +58,7 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
         url = self.path[1:]
         logging.info(f"Received POST request for URL: {url}")
 
-        if not url.startswith(('http://', 'https://')):
+        if not url or not url.startswith(('http://', 'https://')):
             self.send_error(400, "Only absolute URLs are allowed")
             return
 
